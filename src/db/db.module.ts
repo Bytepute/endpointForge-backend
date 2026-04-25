@@ -1,24 +1,14 @@
-import { Module, Global } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import * as schema from './schema';
-import { ConfigService } from '@nestjs/config';
+import { Module } from '@nestjs/common';
+import { DbService } from './db.service';
+import { DRIZZLE } from './db.decorator';
 
-export const DRIZZLE = 'DRIZZLE';
-
-@Global() // Make it available everywhere without importing in every module
 @Module({
   providers: [
+    DbService,
     {
       provide: DRIZZLE,
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const connectionString = configService.get<string>('DATABASE_URL');
-        const pool = new Pool({
-          connectionString,
-        });
-        return drizzle(pool, { schema });
-      },
+      useFactory: (dbService: DbService) => dbService.db,
+      inject: [DbService],
     },
   ],
   exports: [DRIZZLE],
