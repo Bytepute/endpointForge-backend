@@ -40,6 +40,15 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  migrator:
+    build: .
+    container_name: endpointforge_migrator
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/endpointforge_db?schema=public
+    command: sh -c "pnpm drizzle-kit generate && pnpm drizzle-kit migrate"
+
 volumes:
   postgres_data:
   pgadmin_data:
