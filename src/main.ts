@@ -8,6 +8,13 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+  // --- ENABLE CORS ---
+  app.enableCors({
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
+  });
+  // -------------------
+
   // --- SWAGGER SETUP ---
   const config = new DocumentBuilder()
     .setTitle('Projects API')
