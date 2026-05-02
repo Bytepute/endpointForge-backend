@@ -13,8 +13,9 @@ export class CreateRouteGroupRequestDto {
     example: 'User Routes',
     description: 'Name of the route group',
   })
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @ApiPropertyOptional({
     example: 'Endpoints related to user management',

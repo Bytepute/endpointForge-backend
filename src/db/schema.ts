@@ -34,7 +34,7 @@ export const routeGroups = pgTable('route_groups', {
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
 
-  name: varchar('name', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }),
   description: text('description'),
   prefix: text('prefix').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
