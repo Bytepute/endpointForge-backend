@@ -8,6 +8,6 @@ import { DbModule } from '../../db/db.module';
   imports: [DbModule],
   providers: [MockServerService, ServerRegistry],
   controllers: [MockServerController],
-  exports: [MockServerService],
+  exports: [MockServerService, ServerRegistry],
 })
 export class MockServerModule {}
