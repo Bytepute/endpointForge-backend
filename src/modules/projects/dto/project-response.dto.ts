@@ -36,4 +36,12 @@ export class ProjectResponseDto {
   })
   @Expose()
   createdAt: Date;
+
+  @ApiProperty({
+    example: true,
+    description: 'Whether the mock server for this project is currently running',
+  })
+  @Expose()
+  isProjectRunning: boolean;
+
 }

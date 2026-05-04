@@ -7,21 +7,24 @@ import { plainToInstance } from 'class-transformer';
 import { ProjectResponseDto } from './dto/project-response.dto';
 import { CreateProjectRequestDto } from './dto/create-project-request.dto';
 import { UpdateProjectRequestDto } from './dto/update-project-request.dto';
+import { ServerRegistry } from '../mock-server/server-registry';
 
 type ProjectRow = typeof projects.$inferSelect;
 
 @Injectable()
 export class ProjectsService {
-  constructor(@InjectDrizzle() private readonly db: DrizzleDatabase) {}
+  constructor(
+    @InjectDrizzle() private readonly db: DrizzleDatabase,
+    private readonly registry: ServerRegistry) {}
 
   private mapToDto(data: ProjectRow): ProjectResponseDto {
-    return plainToInstance<ProjectResponseDto, ProjectRow>(
-      ProjectResponseDto,
-      data,
-      {
-        excludeExtraneousValues: true,
-      },
-    );
+    const dto = plainToInstance(ProjectResponseDto, data, {
+      excludeExtraneousValues: true,
+    });
+
+    dto.isProjectRunning = !!this.registry.get(data.id);
+
+    return dto;
   }
 
   // Changed input type to CreateProjectDto
