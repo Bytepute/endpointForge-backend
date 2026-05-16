@@ -5,8 +5,10 @@ import { ServerRegistry } from './server-registry';
 import { InjectDrizzle } from '../../db/db.decorator';
 import type { DrizzleDatabase } from '../../db/db.type';
 import { eq } from 'drizzle-orm';
-import { projects, routeGroups } from '../../db/schema';
+import { routeGroups } from '../../db/schema';
 import { resolveResponseBody } from '../../faker/response-resolver';
+import { HttpMethod } from '../endpoints/dto/create-endpoint-request.dto';
+import { AccessService } from '../access/access.service';
 
 @Injectable()
 export class MockServerService {
@@ -15,6 +17,7 @@ export class MockServerService {
   constructor(
     @InjectDrizzle() private readonly db: DrizzleDatabase,
     private readonly registry: ServerRegistry,
+    private readonly accessService: AccessService,
   ) {}
 
   private addRoute(
@@ -35,12 +38,11 @@ export class MockServerService {
       case 'delete':
         return app.delete(path, handler);
       default:
-        throw new Error(`Unsupported HTTP method: ${method}`);
+        throw new Error(`Unsupported HTTP method: ${method as HttpMethod}`);
     }
   }
 
   private async loadRoutes(app: Express, projectId: number) {
-    // 1. Load all groups with endpoints
     const groups = await this.db.query.routeGroups.findMany({
       where: eq(routeGroups.projectId, projectId),
       with: {
@@ -48,7 +50,6 @@ export class MockServerService {
       },
     });
 
-    // Map your enum method (uppercase) to Express method (lowercase)
     const methodMap = {
       GET: 'get',
       POST: 'post',
@@ -60,10 +61,7 @@ export class MockServerService {
     for (const group of groups) {
       for (const endpoint of group.endpoints) {
         const method = methodMap[endpoint.method];
-        if (!method) {
-          console.error(`Unsupported HTTP method: ${endpoint.method}`);
-          continue;
-        }
+        if (!method) continue;
 
         const groupPrefix = group.prefix.startsWith('/')
           ? group.prefix
@@ -83,31 +81,30 @@ export class MockServerService {
           if (delay > 0) {
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
+
           res.status(status).json(body);
         });
 
-        console.log(`Mounted route: [${endpoint.method}] ${fullPath}`);
+        this.logger.log(`Mounted route: [${endpoint.method}] ${fullPath}`);
       }
     }
   }
 
-  async startServer(projectId: number) {
+  async startServer(projectId: number, userId: number) {
     if (this.registry.get(projectId)) {
       return { message: 'Server already running' };
     }
 
-    const project = await this.db.query.projects.findFirst({
-      where: eq(projects.id, projectId),
-    });
-
-    if (!project) throw new Error('Project not found');
+    const project = await this.accessService.assertProjectAccess(
+      projectId,
+      userId,
+    );
 
     const port = project.port || 3000;
 
     const app = express();
     app.use(express.json());
 
-    // Load routes dynamically
     await this.loadRoutes(app, projectId);
 
     const server = await new Promise<Server>((resolve) => {
@@ -116,10 +113,16 @@ export class MockServerService {
 
     this.registry.set(projectId, { app, server, port });
 
+    this.logger.log(
+      `Mock server started for project ${projectId} on port ${port}`,
+    );
+
     return { message: `Mock server started on port ${port}` };
   }
 
-  async stopServer(projectId: number) {
+  async stopServer(projectId: number, userId: number) {
+    await this.accessService.assertProjectAccess(projectId, userId);
+
     const record = this.registry.get(projectId);
 
     if (!record) {
