@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '../../db/db.decorator';
 import type { DrizzleDatabase } from '../../db/db.type';
 import { projects } from '../../db/schema';
@@ -8,6 +8,7 @@ import { ProjectResponseDto } from './dto/project-response.dto';
 import { CreateProjectRequestDto } from './dto/create-project-request.dto';
 import { UpdateProjectRequestDto } from './dto/update-project-request.dto';
 import { ServerRegistry } from '../mock-server/server-registry';
+import { AccessService } from '../access/access.service';
 
 type ProjectRow = typeof projects.$inferSelect;
 
@@ -15,7 +16,9 @@ type ProjectRow = typeof projects.$inferSelect;
 export class ProjectsService {
   constructor(
     @InjectDrizzle() private readonly db: DrizzleDatabase,
-    private readonly registry: ServerRegistry) {}
+    private readonly registry: ServerRegistry,
+    private readonly accessService: AccessService,
+  ) {}
 
   private mapToDto(data: ProjectRow): ProjectResponseDto {
     const dto = plainToInstance(ProjectResponseDto, data, {
@@ -28,48 +31,54 @@ export class ProjectsService {
   }
 
   // Changed input type to CreateProjectDto
-  async create(data: CreateProjectRequestDto): Promise<ProjectResponseDto> {
-    const result = await this.db.insert(projects).values(data).returning();
-    return this.mapToDto(result[0]);
+  async create(
+    data: CreateProjectRequestDto,
+    userId: number,
+  ): Promise<ProjectResponseDto> {
+    const [project] = await this.db
+      .insert(projects)
+      .values({ ...data, userId })
+      .returning();
+    return this.mapToDto(project);
   }
 
-  async findAll(): Promise<ProjectResponseDto[]> {
-    const rows = await this.db.select().from(projects);
+  async findAll(userId: number): Promise<ProjectResponseDto[]> {
+    const rows = await this.db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId));
     return rows.map((row) => this.mapToDto(row));
   }
 
-  async findById(id: number): Promise<ProjectResponseDto> {
-    const result = await this.db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id));
-
-    if (!result.length) throw new NotFoundException('Project not found');
-    return this.mapToDto(result[0]);
+  async findById(id: number, userId: number): Promise<ProjectResponseDto> {
+    const project = await this.accessService.assertProjectAccess(id, userId);
+    return this.mapToDto(project);
   }
 
-  // Changed input type to UpdateProjectDtoany
   async update(
     id: number,
     data: UpdateProjectRequestDto,
+    userId: number,
   ): Promise<ProjectResponseDto> {
-    const updated = await this.db
+    await this.accessService.assertProjectAccess(id, userId);
+
+    const [updatedProject] = await this.db
       .update(projects)
       .set(data)
       .where(eq(projects.id, id))
       .returning();
 
-    if (!updated.length) throw new NotFoundException('Project not found');
-    return this.mapToDto(updated[0]);
+    return this.mapToDto(updatedProject);
   }
 
-  async remove(id: number): Promise<ProjectResponseDto> {
-    const deleted = await this.db
+  async remove(id: number, userId: number): Promise<ProjectResponseDto> {
+    await this.accessService.assertProjectAccess(id, userId);
+
+    const [deletedProject] = await this.db
       .delete(projects)
       .where(eq(projects.id, id))
       .returning();
 
-    if (!deleted.length) throw new NotFoundException('Project not found');
-    return this.mapToDto(deleted[0]);
+    return this.mapToDto(deletedProject);
   }
 }

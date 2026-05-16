@@ -9,17 +9,21 @@ import { ConfigModule } from '@nestjs/config';
 import { MockServerModule } from './modules/mock-server/mock-server.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     DbModule,
     ProjectsModule,
     EndpointsModule,
     RouteGroupsModule,
     MockServerModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    AuthModule,
+    UsersModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

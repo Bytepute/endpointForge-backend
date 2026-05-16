@@ -18,6 +18,15 @@ export const httpMethodEnum = pgEnum('http_method', [
   'DELETE',
 ]);
 
+// User
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  userName: varchar('user_name', { length: 15 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  tokenVersion: integer('token_version').default(0).notNull(),
+});
+
 // Projects Table
 export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
@@ -25,6 +34,10 @@ export const projects = pgTable('projects', {
   description: text('description'),
   port: integer('port').unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
 });
 
 // Route Groups Table
@@ -60,8 +73,17 @@ export const endpoints = pgTable('endpoints', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
-// Relationships (for easy JOINs later)
-export const projectRelations = relations(projects, ({ many }) => ({
+// Relationships (for easy JOINs later
+
+export const userRelations = relations(users, ({ many }) => ({
+  projects: many(projects),
+}));
+
+export const projectRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, {
+    fields: [projects.userId],
+    references: [users.id],
+  }),
   routeGroups: many(routeGroups),
 }));
 
