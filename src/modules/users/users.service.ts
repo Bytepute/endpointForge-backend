@@ -13,6 +13,14 @@ import { User } from './types/user.type';
 export class UsersService {
   constructor(@InjectDrizzle() private readonly db: DrizzleDatabase) {}
 
+  async checkUserNameExist(userName: string): Promise<boolean> {
+    const user = await this.db.query.users.findFirst({
+      where: eq(users.userName, userName),
+      columns: { id: true },
+    });
+    return !!user;
+  }
+
   async findByUsername(userName: string): Promise<User> {
     const user = await this.db.query.users.findFirst({
       where: eq(users.userName, userName),
@@ -30,9 +38,7 @@ export class UsersService {
   }
 
   async create(data: { userName: string; passwordHash: string }) {
-    const existing = await this.findByUsername(data.userName);
-
-    if (existing) {
+    if (await this.checkUserNameExist(data.userName)) {
       throw new ConflictException('Username already taken');
     }
 
