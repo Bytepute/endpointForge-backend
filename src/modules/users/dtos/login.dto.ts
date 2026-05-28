@@ -25,6 +25,13 @@ export class LoginRequestDto {
 export class LoginResponseDto {
   @Expose()
   @ApiProperty({
+    description: 'username',
+    example: 'username',
+  })
+  username!: string;
+
+  @Expose()
+  @ApiProperty({
     description: 'JWT access token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })

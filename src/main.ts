@@ -7,28 +7,51 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+
+  // --- GLOBAL MIDDLEWARE ---
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
   app.use(cookieParser());
 
-  const configService = app.get(ConfigService);
-  const origins = configService
-    .get<string>('CORS_ORIGIN')
-    ?.split(',')
-    .map((o) => o.trim()) || ['http://localhost:3000', 'http://localhost:5173'];
+  // --- DYNAMIC CORS SETUP ---
 
-  // --- ENABLE CORS ---
+  const rawDomains =
+    configService.get<string>('ALLOWED_DOMAINS') || 'localhost, lvh.me';
+  const allowedBaseDomains = rawDomains.split(',').map((d) => d.trim());
 
   app.enableCors({
-    origin: origins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      try {
+        const originUrl = new URL(origin);
+
+        const isAllowed = allowedBaseDomains.some(
+          (domain) =>
+            originUrl.hostname === domain ||
+            originUrl.hostname.endsWith(`.${domain}`),
+        );
+
+        if (isAllowed) {
+          return callback(null, true);
+        }
+
+        return callback(
+          new Error(`CORS blocked: Origin ${origin} not allowed`),
+        );
+      } catch (error) {
+        return callback(new Error(`CORS blocked: Invalid origin URL format`));
+      }
+    },
   });
-  // -------------------
 
   // --- SWAGGER SETUP ---
-  const config = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('Projects API')
     .setDescription('The projects API description')
     .setVersion('1.0')
@@ -40,15 +63,19 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
-
     .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
-  // ---------------------
 
-  const port = process.env.PORT || 3000;
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document);
+
+  // --- BOOTSTRAP ---
+  const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger UI is available at: http://localhost:${port}/docs`);
+
+  console.log(`🚀 Application is running on: http://localhost:${port}`);
+  console.log(`📚 Swagger UI is available at: http://localhost:${port}/docs`);
+  console.log(
+    `🛡️  Allowed CORS Domains: ${allowedBaseDomains.join(', ')} (including subdomains)`,
+  );
 }
 bootstrap();

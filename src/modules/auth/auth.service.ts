@@ -95,6 +95,7 @@ export class AuthService {
       },
     );
     return {
+      username: userName,
       accessToken: accessToken,
       refreshToken: refreshToken,
       expiresIn: ACCESS_TOKEN_EXPIRES_IN_SECONDS,
