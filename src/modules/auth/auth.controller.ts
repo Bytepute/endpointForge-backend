@@ -73,6 +73,7 @@ export class AuthController {
       accessToken: tokens.accessToken,
       expiresIn: tokens.expiresIn,
       tokenType: tokens.tokenType,
+      username: loginDto.userName,
     };
   }
 
@@ -116,6 +117,7 @@ export class AuthController {
       REFRESH_COOKIE_OPTIONS,
     );
     return {
+      username: tokens.username,
       accessToken: tokens.accessToken,
       expiresIn: tokens.expiresIn,
       tokenType: tokens.tokenType,
