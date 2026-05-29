@@ -4,10 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Use Chabokan npm mirror
-RUN pnpm config set registry https://mirror2.chabokan.net/npm/
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
 # Copy dependency files first (better caching)
 COPY package.json pnpm-lock.yaml* ./
@@ -28,10 +25,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Use mirror again
-RUN pnpm config set registry https://mirror2.chabokan.net/npm/
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
 # Copy built app from builder
 COPY --from=builder /app/node_modules ./node_modules
