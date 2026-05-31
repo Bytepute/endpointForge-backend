@@ -62,4 +62,10 @@ export class EndpointResponseDto {
   })
   @Expose()
   updatedAt: Date;
+
+  @ApiProperty({
+    example: 'http://username.domain.ir/project-slug/controller-slug/url-path',
+  })
+  @Expose()
+  endpointFullUrl: string;
 }

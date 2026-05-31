@@ -36,4 +36,10 @@ export class ProjectResponseDto {
   })
   @Expose()
   isRuntimeEnabled: boolean;
+
+  @ApiProperty({
+    example: 'project-name',
+  })
+  @Expose()
+  slug: string;
 }
