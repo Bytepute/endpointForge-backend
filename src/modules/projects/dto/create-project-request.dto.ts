@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsInt,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, Matches } from 'class-validator';
 
 export class CreateProjectRequestDto {
   @ApiProperty({
@@ -17,6 +10,17 @@ export class CreateProjectRequestDto {
   @IsNotEmpty({ message: 'Project name is required' })
   name: string;
 
+  @ApiProperty({
+    example: 'user-service',
+    description: 'Unique URL identifier for the project',
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'Slug is required' })
+  @Matches(/^[a-z0-9-]+$/, {
+    message: 'Slug can only contain lowercase letters, numbers, and hyphens',
+  })
+  slug: string;
+
   @ApiPropertyOptional({
     example: 'Mock APIs for user microservice',
     description: 'Optional project description',
@@ -24,16 +28,4 @@ export class CreateProjectRequestDto {
   @IsString()
   @IsOptional()
   description?: string;
-
-  @ApiPropertyOptional({
-    example: 4001,
-    description: 'Port where the mock server will run',
-    minimum: 4000,
-    maximum: 5000,
-  })
-  @IsInt()
-  @Min(4000)
-  @Max(5000)
-  @IsOptional()
-  port?: number;
 }

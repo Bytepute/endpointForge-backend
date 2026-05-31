@@ -7,7 +7,6 @@ import { plainToInstance } from 'class-transformer';
 import { ProjectResponseDto } from './dto/project-response.dto';
 import { CreateProjectRequestDto } from './dto/create-project-request.dto';
 import { UpdateProjectRequestDto } from './dto/update-project-request.dto';
-import { ServerRegistry } from '../mock-server/server-registry';
 import { AccessService } from '../access/access.service';
 
 type ProjectRow = typeof projects.$inferSelect;
@@ -16,7 +15,6 @@ type ProjectRow = typeof projects.$inferSelect;
 export class ProjectsService {
   constructor(
     @InjectDrizzle() private readonly db: DrizzleDatabase,
-    private readonly registry: ServerRegistry,
     private readonly accessService: AccessService,
   ) {}
 
@@ -25,12 +23,9 @@ export class ProjectsService {
       excludeExtraneousValues: true,
     });
 
-    dto.isProjectRunning = !!this.registry.get(data.id);
-
     return dto;
   }
 
-  // Changed input type to CreateProjectDto
   async create(
     data: CreateProjectRequestDto,
     userId: number,

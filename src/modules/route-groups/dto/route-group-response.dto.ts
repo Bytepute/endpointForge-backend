@@ -41,9 +41,9 @@ export class RouteGroupResponseDto {
   updatedAt: Date;
 
   @ApiProperty({
-    example: '/users',
-    description: 'URL prefix applied to all endpoints in this route group',
+    example: 'user-service',
+    description: 'URL slug applied to all endpoints in this route group',
   })
   @Expose()
-  prefix: string;
+  slug: string;
 }
