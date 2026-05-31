@@ -19,11 +19,9 @@ export class ProjectsService {
   ) {}
 
   private mapToDto(data: ProjectRow): ProjectResponseDto {
-    const dto = plainToInstance(ProjectResponseDto, data, {
+    return plainToInstance(ProjectResponseDto, data, {
       excludeExtraneousValues: true,
     });
-
-    return dto;
   }
 
   async create(
