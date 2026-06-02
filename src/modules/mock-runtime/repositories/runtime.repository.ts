@@ -64,8 +64,6 @@ export class RuntimeRepository {
       .limit(1);
 
     const row = rows[0];
-    console.log(row);
-    console.log(row.endpointId);
     // No user+project match at all
     if (!row) return { ok: false, reason: 'NOT_FOUND' };
 

@@ -17,15 +17,12 @@ export class MockRuntimeMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    console.log('salam');
     const { username } = this.hostnameParser.parse(req.hostname);
-    console.log(username);
     if (!username) {
       return next();
     }
 
     const parsedRoute = this.routeMatcher.parse(req.originalUrl);
-    console.log(parsedRoute);
     if (!parsedRoute) {
       return next();
     }
@@ -38,7 +35,6 @@ export class MockRuntimeMiddleware implements NestMiddleware {
       method: req.method,
     });
 
-    console.log(result);
     if (!result.ok) {
       if (result.reason === 'PROJECT_DISABLED') {
         return res.status(403).json({

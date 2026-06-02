@@ -9,7 +9,6 @@ export interface ParsedRoute {
 @Injectable()
 export class RouteMatcherService {
   parse(path: string): ParsedRoute | null {
-    console.log(path);
     const segments = path.split('/').filter(Boolean);
 
     if (segments.length < 3) {
