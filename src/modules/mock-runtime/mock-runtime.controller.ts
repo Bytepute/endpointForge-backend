@@ -1,12 +1,15 @@
 import { Controller, Param, Post } from '@nestjs/common';
-import { MockServerService } from './mock-server.service';
+import { MockRuntimeService } from './mock-runtime.service';
 import { Throttle } from '@nestjs/throttler';
 import { mockServerThrottleLimit } from 'src/constants/throttle-limit/mock-server-throttle-limit';
 import type { CurrentUserData } from '../auth/interfaces/current-user.interface';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Auth } from '../auth/decorators/auth.decorator';
+
+@Auth()
 @Controller('mock')
-export class MockServerController {
-  constructor(private readonly mockServerService: MockServerService) {}
+export class MockRuntimeController {
+  constructor(private readonly mockServerService: MockRuntimeService) {}
 
   @Post('start/:projectId')
   @Throttle({ default: mockServerThrottleLimit.start })

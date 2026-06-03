@@ -6,11 +6,11 @@ import { EndpointsModule } from './modules/endpoints/endpoints.module';
 import { RouteGroupsModule } from './modules/route-groups/route-groups.module';
 import { DbModule } from './db/db.module';
 import { ConfigModule } from '@nestjs/config';
-import { MockServerModule } from './modules/mock-server/mock-server.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { MockRuntimeModule } from './modules/mock-runtime/mock-runtime.module';
 
 @Module({
   imports: [
@@ -22,8 +22,8 @@ import { UsersModule } from './modules/users/users.module';
     ProjectsModule,
     EndpointsModule,
     RouteGroupsModule,
-    MockServerModule,
     AuthModule,
+    MockRuntimeModule,
     UsersModule,
     ThrottlerModule.forRoot({
       throttlers: [

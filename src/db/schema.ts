@@ -7,6 +7,9 @@ import {
   timestamp,
   varchar,
   text,
+  uniqueIndex,
+  boolean,
+  unique,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -28,51 +31,79 @@ export const users = pgTable('users', {
 });
 
 // Projects Table
-export const projects = pgTable('projects', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  port: integer('port').unique(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-});
+export const projects = pgTable(
+  'projects',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 100 }).notNull(),
+    description: text('description'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    isRuntimeEnabled: boolean('is_runtime_enabled').notNull().default(true),
+  },
+  (table) => [
+    unique('projects_user_name_unique').on(table.userId, table.name),
+    unique('projects_user_slug_unique').on(table.userId, table.slug),
+  ],
+);
 
 // Route Groups Table
-export const routeGroups = pgTable('route_groups', {
-  id: serial('id').primaryKey(),
-  projectId: integer('project_id')
-    .notNull()
-    .references(() => projects.id, { onDelete: 'cascade' }),
+export const routeGroups = pgTable(
+  'route_groups',
+  {
+    id: serial('id').primaryKey(),
 
-  name: varchar('name', { length: 255 }),
-  description: text('description'),
-  prefix: text('prefix').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
+    projectId: integer('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
 
+    name: varchar('name', { length: 255 }),
+
+    slug: varchar('slug', { length: 100 }).notNull(),
+
+    description: text('description'),
+
+    createdAt: timestamp('created_at').defaultNow(),
+
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  (table) => [
+    unique('route_groups_project_name_unique').on(table.projectId, table.name),
+    unique('route_groups_project_slug_unique').on(table.projectId, table.slug),
+  ],
+);
 // Endpoints Table
-export const endpoints = pgTable('endpoints', {
-  id: serial('id').primaryKey(),
+export const endpoints = pgTable(
+  'endpoints',
+  {
+    id: serial('id').primaryKey(),
 
-  routeGroupId: integer('route_group_id')
-    .notNull()
-    .references(() => routeGroups.id, { onDelete: 'cascade' }),
+    routeGroupId: integer('route_group_id')
+      .notNull()
+      .references(() => routeGroups.id, { onDelete: 'cascade' }),
 
-  method: httpMethodEnum('method').notNull(),
-  path: varchar('path', { length: 255 }).notNull(),
+    method: httpMethodEnum('method').notNull(),
+    path: varchar('path', { length: 255 }).notNull(),
 
-  statusCode: integer('status_code').default(200).notNull(),
-  delay: integer('delay').default(0).notNull(), // milliseconds
+    statusCode: integer('status_code').default(200).notNull(),
+    delay: integer('delay').default(0).notNull(), // milliseconds
 
-  responseBody: jsonb('response_body').notNull().default({}),
+    responseBody: jsonb('response_body').notNull().default({}),
 
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  (table) => ({
+    routeMethodPathUnique: uniqueIndex('endpoints_route_method_path_unique').on(
+      table.routeGroupId,
+      table.method,
+      table.path,
+    ),
+  }),
+);
 // Relationships (for easy JOINs later
 
 export const userRelations = relations(users, ({ many }) => ({

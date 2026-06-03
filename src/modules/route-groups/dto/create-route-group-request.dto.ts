@@ -1,4 +1,10 @@
-import { IsString, IsInt, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsNotEmpty,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateRouteGroupRequestDto {
@@ -26,9 +32,13 @@ export class CreateRouteGroupRequestDto {
   description?: string;
 
   @ApiProperty({
-    example: '/users',
-    description: 'URL prefix applied to all endpoints in this group',
+    example: 'user-service',
+    description: 'Unique URL identifier for the project',
   })
   @IsString()
-  prefix: string;
+  @IsNotEmpty({ message: 'Slug is required' })
+  @Matches(/^[a-z0-9-]+$/, {
+    message: 'Slug can only contain lowercase letters, numbers, and hyphens',
+  })
+  slug: string;
 }

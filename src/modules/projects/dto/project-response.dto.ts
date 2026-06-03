@@ -22,14 +22,6 @@ export class ProjectResponseDto {
   description: string | null;
 
   @ApiProperty({
-    example: 4001,
-    nullable: true,
-    description: 'Port where the mock server runs',
-  })
-  @Expose()
-  port: number | null;
-
-  @ApiProperty({
     example: '2026-04-24T08:00:00.000Z',
     type: String,
     format: 'date-time',
@@ -39,9 +31,15 @@ export class ProjectResponseDto {
 
   @ApiProperty({
     example: true,
-    description: 'Whether the mock server for this project is currently running',
+    description:
+      'Whether the mock server for this project is currently running',
   })
   @Expose()
-  isProjectRunning: boolean;
+  isRuntimeEnabled: boolean;
 
+  @ApiProperty({
+    example: 'project-slug',
+  })
+  @Expose()
+  slug: string;
 }
