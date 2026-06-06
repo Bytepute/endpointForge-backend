@@ -1,6 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
 import * as dotenv from 'dotenv';
-dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+dotenv.config({ path: `.env.${nodeEnv}` });
 
 export default defineConfig({
   schema: './src/db/schema.ts',

@@ -12,11 +12,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { MockRuntimeModule } from './modules/mock-runtime/mock-runtime.module';
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
+      envFilePath: [`.env.${nodeEnv}`],
     }),
     DbModule,
     ProjectsModule,
