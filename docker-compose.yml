@@ -1,14 +1,12 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:16
     container_name: endpointforge_postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: endpointforge_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-endpointforge_db}
     ports:
       - '5432:5432'
     volumes:
@@ -21,16 +19,16 @@ services:
     depends_on:
       - db
     ports:
-      - '4000:4000'
+      - '${PORT:-4000}:${PORT:-4000}'
     environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:1234@db:5432/endpointforge_db?schema=public
-      PORT: 4000
-      JWT_SECRET: B0bZQSJNDIg9UVU0HJLTxWoILinZEINUWptgRYjHnXqXu0M/UkAXlflxlYNhNVJfqQNfke4jxvttC2rNy6yT/Q==
-      JWT_EXPIRES_IN: 1h
-      ALLOWED_DOMAINS: localhost,lvh.me
-      APP_PROTOCOL: http
-      APP_ROOT_DOMAIN: lvh.me:4000
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-endpointforge_db}?schema=public
+      PORT: ${PORT:-4000}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      ALLOWED_DOMAINS: ${ALLOWED_DOMAINS:-localhost,lvh.me}
+      APP_PROTOCOL: ${APP_PROTOCOL:-http}
+      APP_ROOT_DOMAIN: ${APP_ROOT_DOMAIN:-lvh.me:4000}
   pgadmin:
     image: dpage/pgadmin4
     container_name: endpointforge_pgadmin
@@ -38,8 +36,8 @@ services:
     depends_on:
       - db
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin1234
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required}
     ports:
       - '5050:80'
     volumes:
@@ -51,7 +49,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://postgres:1234@db:5432/endpointforge_db?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-endpointforge_db}?schema=public
     command: sh -c "pnpm drizzle-kit generate && pnpm drizzle-kit migrate"
 
 volumes:
