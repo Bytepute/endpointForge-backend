@@ -32,8 +32,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 
+# Copy source and config (drizzle folder is explicitly removed)
 COPY --from=builder /app/src ./src
-COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 
 # NestJS port
